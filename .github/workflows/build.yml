@@ -1,0 +1,111 @@
+name: ARM64 Kernel Build
+
+on:
+  workflow_dispatch: # 允许手动触发工作流
+  push:              # 当代码推送到仓库时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm # 指定使用 ARM64 Runner
+
+    steps:
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Assume .config is unchanged
+      run: |
+        git update-index --assume-unchanged .config
+        # 告诉 Git 暂时不要跟踪 .config 文件的任何变化
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libncurses5-dev flex bison bc libssl-dev dwarves lz4 zstd cpio python3-pip gzip tar xz-utils libclang-dev
+        # 安装编译依赖
+
+    # 设置 Rust 工具链
+    - name: Setup Rust Toolchain
+      run: |
+        # 使用 rustup 安装最新的稳定版 Rust 工具链
+        # Rust 工具链是启用内核 Rust 支持的先决条件
+        curl https://sh.rustup.rs -sSf | sh -s -- -y
+        # 将 Cargo 的 bin 目录添加到 PATH
+        echo "PATH=$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+
+        # 安装内核构建所需的 rust-src 组件
+        rustup component add rust-src
+        
+        # 安装 bindgen，用于生成 Rust/C 绑定
+        cargo install bindgen-cli
+
+        make rustavailable
+
+    - name: Download and Extract ARM GNU Toolchain
+      run: |
+        TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-linux-gnu.tar.xz"
+        TOOLCHAIN_DIR="arm-gnu-toolchain"
+        
+        # 创建工具链目录
+        mkdir -p "${TOOLCHAIN_DIR}"
+        
+        # 下载并解压工具链
+        wget -qO- "${TOOLCHAIN_URL}" | tar -xJ --strip-components=1 -C "${TOOLCHAIN_DIR}"
+        
+        # 将工具链路径添加到环境变量中，供后续步骤使用
+        echo "TOOLCHAIN_PATH=$(pwd)/${TOOLCHAIN_DIR}/bin" >> $GITHUB_ENV
+        
+    - name: Set Environment Variables
+      run: |
+        # 使用下载的工具链的交叉编译前缀
+        echo "ARCH=arm64" >> $GITHUB_ENV
+        echo "CROSS_COMPILE=aarch64-none-linux-gnu-" >> $GITHUB_ENV
+        echo "PATH=$TOOLCHAIN_PATH:$PATH" >> $GITHUB_ENV
+
+    - name: olddefconfig
+      run: |
+        make olddefconfig
+        # 配置内核
+
+    - name: Build Kernel
+      run: |
+        make -j$(nproc)
+        # 编译内核
+
+    - name: Prepare installation directory
+      run: |
+        mkdir -p out/modules
+        mkdir -p out/dtbs
+
+    - name: Install modules
+      run: |
+        make modules_install INSTALL_MOD_PATH=out/modules
+        # 安装模块
+
+    - name: Copy all DTB files
+      run: |
+        find arch/arm64/boot/dts/ -name "*.dtb" -exec cp {} out/dtbs/ \;
+
+    - name: Package
+      run: |
+        cd out
+        tar -Jcvf modules.tar.xz modules
+        tar -Jcvf dtbs.tar.xz dtbs
+        cd ../
+
+    - name: Create final artifact directory and Copy file
+      run: |
+        mkdir -p artifacts
+        cp arch/arm64/boot/Image.gz artifacts/
+        cp .config artifacts/
+        cp out/modules.tar.xz artifacts/
+        cp out/dtbs.tar.xz artifacts/
+
+    - name: Upload Kernel Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: kernel-artifacts
+        path: |
+          artifacts/
+          # 上传文件
