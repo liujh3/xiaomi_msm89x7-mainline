@@ -42,6 +42,7 @@
 				 <&gcc GCC_MDSS_PCLK0_CLK>,
 				 <&gcc GCC_MDSS_ESC0_CLK>;
 			power-domains = <&gcc MDSS_GDSC>;
+			status = "disabled";
 		};
 	};
 
@@ -113,6 +114,41 @@
 		touchscreen-size-x = <720>;
 		touchscreen-size-y = <1440>;
 	};
+};
+
+&mdss {
+	status = "okay";
+};
+
+&mdss_dsi0 {
+	panel@0 {
+		compatible = "mdss,ft8006splus-c3i";
+		reg = <0>;
+
+		// backlight = <&backlight>;
+		reset-gpios = <&tlmm 60 GPIO_ACTIVE_LOW>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&panel_reset_active>;
+		pinctrl-1 = <&panel_reset_sleep>;
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	data-lanes = <0 1 2 3>;
+	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi0_phy {
+	vddio-supply = <&pm8953_l3>;
+
+	status = "okay";
 };
 
 &pm8953_resin {
@@ -287,6 +323,21 @@
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-up;
+	};
+
+	panel_reset_active: panel-reset-active-state {
+		pins = "gpio60";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+		output-high;
+	};
+
+	panel_reset_sleep: panel-reset-sleep-state {
+		pins = "gpio60";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
 	};
 
 	sdc2_cd_default: sdc2-cd-default-state {

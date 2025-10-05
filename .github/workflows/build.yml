@@ -77,6 +77,7 @@ jobs:
       run: |
         mkdir -p out/modules
         mkdir -p out/dtbs
+        cp .config out/
 
     - name: Install modules
       run: |
@@ -90,6 +91,7 @@ jobs:
     - name: Package
       run: |
         cd out
+        tar -Jcvf config.tar.xz .config
         tar -Jcvf modules.tar.xz modules
         tar -Jcvf dtbs.tar.xz dtbs
         cd ../
@@ -98,7 +100,7 @@ jobs:
       run: |
         mkdir -p artifacts
         cp arch/arm64/boot/Image.gz artifacts/
-        cp .config artifacts/
+        cp config.tar.xz artifacts/
         cp out/modules.tar.xz artifacts/
         cp out/dtbs.tar.xz artifacts/
 
