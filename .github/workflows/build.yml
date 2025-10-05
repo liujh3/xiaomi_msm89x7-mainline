@@ -100,7 +100,7 @@ jobs:
       run: |
         mkdir -p artifacts
         cp arch/arm64/boot/Image.gz artifacts/
-        cp config.tar.xz artifacts/
+        cp out/config.tar.xz artifacts/
         cp out/modules.tar.xz artifacts/
         cp out/dtbs.tar.xz artifacts/
 
