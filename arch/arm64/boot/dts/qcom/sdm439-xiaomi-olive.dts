@@ -28,9 +28,9 @@
 
 		framebuffer0: framebuffer@90001000 {
 			compatible = "simple-framebuffer";
-			reg = <0x0 0x90001000 0x0 (720 * 1440 * 3)>;
+			reg = <0x0 0x90001000 0x0 (720 * 1520 * 3)>;
 			width = <720>;
-			height = <1440>;
+			height = <1520>;
 			stride = <(720 * 3)>;
 			format = "r8g8b8";
 
@@ -42,7 +42,6 @@
 				 <&gcc GCC_MDSS_PCLK0_CLK>,
 				 <&gcc GCC_MDSS_ESC0_CLK>;
 			power-domains = <&gcc MDSS_GDSC>;
-			status = "disabled";
 		};
 	};
 
@@ -117,10 +116,12 @@
 };
 
 &mdss {
-	status = "okay";
+	status = "disabled";
 };
 
 &mdss_dsi0 {
+	status = "okay";
+	
 	panel@0 {
 		compatible = "mdss,ft8006splus-c3i";
 		reg = <0>;
@@ -146,8 +147,6 @@
 };
 
 &mdss_dsi0_phy {
-	vddio-supply = <&pm8953_l3>;
-
 	status = "okay";
 };
 
