@@ -96,22 +96,16 @@
 	status = "okay";
 };
 
-&blsp1_i2c3 {
+&blsp2_i2c1 {
 	status = "okay";
 
-	touchscreen@38 {
-		compatible = "edt,edt-ft5406";
-		reg = <0x38>;
+	led-controller@36 {
+		compatible = "ti,lm3697";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x36>;
 
-		interrupts-extended = <&tlmm 65 IRQ_TYPE_EDGE_FALLING>;
-		reset-gpios = <&tlmm 64 GPIO_ACTIVE_LOW>;
-		vcc-supply = <&pm8953_l10>;
-		iovcc-supply = <&pm8953_l5>;
-
-		/* TODO: add pinctrl */
-
-		touchscreen-size-x = <720>;
-		touchscreen-size-y = <1440>;
+		enable-gpios = <&pm8953_gpios 4 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -379,4 +373,7 @@
 
 &xo_board {
 	clock-frequency = <19200000>;
+};
+
+&pm8953_gpios {
 };
