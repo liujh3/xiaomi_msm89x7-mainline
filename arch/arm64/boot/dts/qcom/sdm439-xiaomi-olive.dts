@@ -6,6 +6,7 @@
 
 #include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
 #include "sdm439.dtsi"
 #include "pm8953.dtsi"
 #include "pmi632.dtsi"
@@ -96,16 +97,18 @@
 	status = "okay";
 };
 
+&blsp1_spi3 {
+	status = "okay";
+};
+
 &blsp2_i2c1 {
 	status = "okay";
 
 	led-controller@36 {
-		compatible = "ti,lm3697";
+		compatible = "kinetic,ktd3137";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0x36>;
-
-		enable-gpios = <&pm8953_gpios 4 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -376,4 +379,49 @@
 };
 
 &pm8953_gpios {
+	gpio-line-names = "pm8953_gpio1",
+                      "pm8953_gpio2",
+                      "pm8953_gpio3",
+                      "pm8953_gpio4",
+                      "pm8953_gpio5",
+                      "pm8953_gpio6",
+                      "pm8953_gpio7",
+                      "pm8953_gpio8";
+};
+
+&pmi632_gpios {
+	gpio-line-names = "pmi632_gpio1",
+                      "pmi632_gpio2",
+                      "pmi632_gpio3",
+                      "pmi632_gpio4",
+                      "pmi632_gpio5",
+                      "pmi632_gpio6",
+                      "pmi632_gpio7",
+                      "pmi632_gpio8";
+};
+
+&pmi632_lpg {
+	status = "okay";
+
+	led@1 {
+		reg = <1>;
+		color = <LED_COLOR_ID_RED>;
+		label = "red";
+	};
+
+	led@2 {
+		reg = <2>;
+		color = <LED_COLOR_ID_GREEN>;
+		label = "green";
+	};
+
+	led@3 {
+		reg = <3>;
+		color = <LED_COLOR_ID_BLUE>;
+		label = "blue";
+	};
+};
+
+&pmi632_vib {
+	status = "okay";
 };
